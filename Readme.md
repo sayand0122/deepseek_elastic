@@ -58,7 +58,7 @@
 
 #### If you want to see your system specs while running this code execute this in a new terminal
     sudo apt install btop -y
-    and run **btop**
+    and run btop
 
 
 
