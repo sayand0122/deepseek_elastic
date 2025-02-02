@@ -1,0 +1,4 @@
+elasticsearch==7.17.6
+fastapi==0.115.8
+pandas==2.1.4+dfsg
+Requests==2.32.3
