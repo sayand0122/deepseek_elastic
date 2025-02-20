@@ -1,1 +1,1 @@
-index_name="titanic"
+index_name="titanic_time"

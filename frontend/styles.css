@@ -27,3 +27,14 @@ button {
     border: none;
     cursor: pointer;
 }
+#result {
+    white-space: pre-wrap;  /* Allows text to wrap properly */
+    word-wrap: break-word;  /* Ensures words break if too long */
+    overflow-wrap: break-word; /* Prevents text from overflowing */
+    max-width: 100%;  /* Ensures it stays within the container */
+    padding: 10px;
+    background: #f8f9fa;
+    border-radius: 8px;
+    border: 1px solid #ccc;
+}
+

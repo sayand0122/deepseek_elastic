@@ -2,6 +2,7 @@ import requests
 import time
 import re
 import json
+from backend.properties import index_name
 from backend.elastic import get_elastic_client
 
 OLLAMA_DOCKER_URL = "http://localhost:11434/api/generate"
@@ -127,7 +128,7 @@ Your job is to output correctly formatted **JSON queries** based on user questio
 ```
 """
 
-def query_llm(question):
+def generate_query(question):
     start_time = time.time()
 
     while True:
@@ -140,22 +141,34 @@ def query_llm(question):
 
       # Ensure valid JSON
       pattern = re.compile(r'```json(.*?)```', re.DOTALL)
-      match=pattern.search(response['response'])
-      extracted_content = match.group(1).strip()
+      try:
+        match=pattern.search(response['response'])
+        extracted_content = match.group(1).strip()
+      except:
+        continue
       query_dsl=extracted_content
-
+      # print(query_dsl)  
 
       try:
           es_query = json.loads(query_dsl)
           if not ("query" in es_query or "aggs" in es_query):
               raise ValueError("Invalid Elasticsearch query format")
+          # Modify the query based on type
+          # if query_type == "summary":
+          #     es_query["size"] = 100  # Retrieve more data for summarization
+          # elif query_type == "statistical":
+          #     es_query["size"] = 0  # No raw data needed, only aggregations
+
           break
       except json.JSONDecodeError as e:
           print("Invalid JSON format generated")
           continue
+    return es_query,start_time
 
+def execute_query(question):
+    es_query,start_time = generate_query(question)  # Generate Elasticsearch DSL query
     try:
-        results = es.search(index="titanic", body=es_query)
+        results = es.search(index=index_name, body=es_query)
         if "aggregations" in results:
             agg_key = list(results["aggregations"].keys())[0]
             agg_value = results["aggregations"][agg_key]["value"]
@@ -178,7 +191,7 @@ def query_llm(question):
                         f"{'survived' if passenger.get('Survived') == 1 else 'did not survive'}."
               formatted_results.append(summary)
           
-          print(formatted_results)
+          # print(formatted_results)
           answer= "Here are the results: \n" + "\n".join(formatted_results)
 
     except Exception as e:

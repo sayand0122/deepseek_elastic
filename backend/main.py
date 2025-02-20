@@ -1,8 +1,9 @@
 from fastapi import FastAPI, Query
 from fastapi.responses import HTMLResponse
 from fastapi.staticfiles import StaticFiles
-from backend.ollama_client import query_llm
+from backend.ollama_client import generate_query,execute_query
 from backend.csv_loader import load_csv_to_elastic
+from backend.summarization import summarize_results
 from pathlib import Path
 from backend.properties import index_name
 
@@ -19,8 +20,11 @@ def serve_frontend():
 # API Endpoint for querying Titanic dataset
 @app.get("/query/")
 def search_csv(question: str = Query(..., description="Ask a question about the Titanic dataset")):
-    answer = query_llm(question)  # Generate Elasticsearch DSL query
-    return {"answer": answer}
+    summary_keywords = ["summary", "summarize", "conclusion", "insight", "key takeaways", "explanation"]
+    if any(keyword in question.lower() for keyword in summary_keywords):
+        return summarize_results()
+    else: 
+        return execute_query(question)
 
 # Load Titanic CSV into Elasticsearch at startup
 load_csv_to_elastic("data/titanic.csv", index_name)
